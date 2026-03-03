@@ -1,0 +1,42 @@
+{
+  "$schema": "https://alirezanet.github.io/Husky.Net/schema.json",
+  "tasks": [
+    {
+      "name": "dotnet-format-whitespace",
+      "group": "pre-commit",
+      "command": "dotnet",
+      "args": [
+        "format", "whitespace", "--include", "${staged}"
+      ],
+      "include": ["**/*.cs"]
+    },
+    {
+      "name": "dotnet-format-style",
+      "group": "pre-commit",
+      "command": "dotnet",
+      "args": [
+        "format", "style",
+        "--severity", "warn",
+        "--include", "${staged}"
+      ],
+      "include": ["**/*.cs"]
+    },
+    {
+      "name": "build-check",
+      "group": "pre-commit",
+      "command": "dotnet",
+      "args": ["build", "--no-restore", "-v", "quiet"]
+    },
+    {
+      "name": "commit-message-linter",
+      "command": "dotnet",
+      "args": [
+        "husky",
+        "exec",
+        ".husky/csx/commit-lint.csx",
+        "--args",
+        "${args}"
+      ]
+    }
+  ]
+}

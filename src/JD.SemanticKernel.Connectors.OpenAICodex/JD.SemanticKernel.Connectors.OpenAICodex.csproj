@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net8.0;net10.0</TargetFrameworks>
+    <PackageId>JD.SemanticKernel.Connectors.OpenAICodex</PackageId>
+    <Description>
+      OpenAI Codex session connector for Semantic Kernel. Provides UseCodexChatCompletion()
+      to wire local Codex CLI OAuth credentials (or an explicit API key) into any Semantic Kernel
+      application without managing tokens manually.
+    </Description>
+    <PackageTags>semantic-kernel;connectors;openai;codex;chatgpt;authentication;ai;oauth</PackageTags>
+    <IsPackable>true</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- NuGet package metadata -->
+    <Authors>JD</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/JerrettDavis/JD.SemanticKernel.Connectors.OpenAICodex</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/JerrettDavis/JD.SemanticKernel.Connectors.OpenAICodex</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>JD.SemanticKernel.Connectors.OpenAICodex.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <!-- All TFMs: shared plumbing -->
+  <ItemGroup>
+    <PackageReference Include="JD.SemanticKernel.Connectors.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+  </ItemGroup>
+
+  <!-- netstandard2.0 only: packages not pulled in transitively without SK -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Text.Json" />
+  </ItemGroup>
+
+  <!-- net8.0+: SK + OpenAI connector -->
+  <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
+    <PackageReference Include="Microsoft.SemanticKernel" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" />
+  </ItemGroup>
+
+</Project>
