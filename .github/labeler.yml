@@ -31,4 +31,5 @@
     - any-glob-to-any-file:
       - '**/*.csproj'
       - 'Directory.Build.props'
+      - 'Directory.Packages.props'
       - 'version.json'

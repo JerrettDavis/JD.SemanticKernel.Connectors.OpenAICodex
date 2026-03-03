@@ -1,0 +1,21 @@
+# Code Owners for JD.SemanticKernel.Connectors.OpenAICodex
+# These users will be automatically requested for review
+
+# Global owners
+* @jerrettdavis
+
+# Workflows and CI/CD
+/.github/ @jerrettdavis
+
+# Documentation
+/docs/ @jerrettdavis
+*.md @jerrettdavis
+
+# Core connector library
+/src/JD.SemanticKernel.Connectors.OpenAICodex/ @jerrettdavis
+
+# Samples
+/samples/ @jerrettdavis
+
+# Tests
+/tests/ @jerrettdavis
