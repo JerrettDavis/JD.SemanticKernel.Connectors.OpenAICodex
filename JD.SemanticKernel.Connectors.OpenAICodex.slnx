@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/JD.SemanticKernel.Connectors.OpenAICodex/JD.SemanticKernel.Connectors.OpenAICodex.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/JD.SemanticKernel.Connectors.OpenAICodex.Tests/JD.SemanticKernel.Connectors.OpenAICodex.Tests.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/BasicUsage/BasicUsage.csproj" />
+  </Folder>
+</Solution>
