@@ -295,4 +295,150 @@ public class CodexSessionProviderTests
 
         Assert.Equal("/custom/path/auth.json", path);
     }
+
+    [Fact]
+    public async Task GetApiKey_NestedTokens_ExchangesIdToken()
+    {
+        var tmpDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tmpDir);
+        var credPath = Path.Combine(tmpDir, "auth.json");
+
+        try
+        {
+            Environment.SetEnvironmentVariable("OPENAI_API_KEY", null);
+            Environment.SetEnvironmentVariable("CODEX_TOKEN", null);
+
+            // Write Codex CLI nested format
+            var json = """
+                {
+                    "last_refresh": "2026-02-26T20:09:00Z",
+                    "OPENAI_API_KEY": "",
+                    "tokens": {
+                        "id_token": "eyJ.nested-id-token",
+                        "access_token": "eyJ.nested-access-token",
+                        "refresh_token": "rt_nested",
+                        "account_id": "acc-123"
+                    }
+                }
+                """;
+            await File.WriteAllTextAsync(credPath, json);
+
+            using var provider = SessionProviderFactory.Create(o => o.CredentialsPath = credPath);
+            provider.TokenExchanger = (_, token, _) =>
+                Task.FromResult<string?>($"api-key-from-{token}");
+
+            var key = await provider.GetApiKeyAsync();
+            Assert.Equal("api-key-from-eyJ.nested-id-token", key);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("OPENAI_API_KEY", null);
+            Environment.SetEnvironmentVariable("CODEX_TOKEN", null);
+            Directory.Delete(tmpDir, true);
+        }
+    }
+
+    [Fact]
+    public async Task GetApiKey_NestedTokens_NoIdToken_UsesAccessToken()
+    {
+        var tmpDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tmpDir);
+        var credPath = Path.Combine(tmpDir, "auth.json");
+
+        try
+        {
+            Environment.SetEnvironmentVariable("OPENAI_API_KEY", null);
+            Environment.SetEnvironmentVariable("CODEX_TOKEN", null);
+
+            var json = """
+                {
+                    "tokens": {
+                        "access_token": "nested-access-direct"
+                    }
+                }
+                """;
+            await File.WriteAllTextAsync(credPath, json);
+
+            using var provider = SessionProviderFactory.Create(o => o.CredentialsPath = credPath);
+            provider.TokenExchanger = (_, _, _) => Task.FromResult<string?>(null);
+
+            var key = await provider.GetApiKeyAsync();
+            Assert.Equal("nested-access-direct", key);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("OPENAI_API_KEY", null);
+            Environment.SetEnvironmentVariable("CODEX_TOKEN", null);
+            Directory.Delete(tmpDir, true);
+        }
+    }
+
+    [Fact]
+    public async Task GetApiKey_OpenAIApiKeyFieldInFile_UsedDirectly()
+    {
+        var tmpDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tmpDir);
+        var credPath = Path.Combine(tmpDir, "auth.json");
+
+        try
+        {
+            Environment.SetEnvironmentVariable("OPENAI_API_KEY", null);
+            Environment.SetEnvironmentVariable("CODEX_TOKEN", null);
+
+            var json = """
+                {
+                    "OPENAI_API_KEY": "sk-file-key-123",
+                    "tokens": {
+                        "access_token": "should-not-be-used"
+                    }
+                }
+                """;
+            await File.WriteAllTextAsync(credPath, json);
+
+            using var provider = SessionProviderFactory.Create(o => o.CredentialsPath = credPath);
+
+            var key = await provider.GetApiKeyAsync();
+            Assert.Equal("sk-file-key-123", key);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("OPENAI_API_KEY", null);
+            Environment.SetEnvironmentVariable("CODEX_TOKEN", null);
+            Directory.Delete(tmpDir, true);
+        }
+    }
+
+    [Fact]
+    public async Task IsAuthenticated_NestedTokens_ReturnsTrue()
+    {
+        var tmpDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tmpDir);
+        var credPath = Path.Combine(tmpDir, "auth.json");
+
+        try
+        {
+            Environment.SetEnvironmentVariable("OPENAI_API_KEY", null);
+            Environment.SetEnvironmentVariable("CODEX_TOKEN", null);
+
+            var json = """
+                {
+                    "tokens": {
+                        "access_token": "nested-token"
+                    }
+                }
+                """;
+            await File.WriteAllTextAsync(credPath, json);
+
+            using var provider = SessionProviderFactory.Create(o => o.CredentialsPath = credPath);
+            provider.TokenExchanger = (_, _, _) => Task.FromResult<string?>(null);
+
+            Assert.True(await provider.IsAuthenticatedAsync());
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("OPENAI_API_KEY", null);
+            Environment.SetEnvironmentVariable("CODEX_TOKEN", null);
+            Directory.Delete(tmpDir, true);
+        }
+    }
 }

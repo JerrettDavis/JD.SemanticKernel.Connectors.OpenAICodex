@@ -113,11 +113,11 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
 
             // If token is expired and we have a refresh token, try refreshing
             if (file is not null && file.IsExpired
-                && !string.IsNullOrWhiteSpace(file.RefreshToken)
+                && !string.IsNullOrWhiteSpace(file.EffectiveRefreshToken)
                 && _options.AutoRefreshTokens)
             {
                 _logger.LogInformation("Access token expired, attempting refresh");
-                var refreshed = await RefreshTokenAsync(file.RefreshToken!, ct)
+                var refreshed = await RefreshTokenAsync(file.EffectiveRefreshToken!, ct)
                     .ConfigureAwait(false);
                 if (refreshed is not null)
                 {
@@ -169,15 +169,23 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
                 "No Codex credentials found. " +
                 "Install Codex CLI and run 'codex login', or set the OPENAI_API_KEY environment variable.");
 
+        // If the file has an explicit API key at root level, use it
+        if (!string.IsNullOrWhiteSpace(creds.OpenAIApiKey))
+        {
+            _logger.LogInformation("Using OPENAI_API_KEY from credentials file");
+            return creds.OpenAIApiKey!;
+        }
+
         if (creds.IsExpired)
             throw new CodexSessionException(
                 $"Codex session expired at {creds.ExpiresAtUtc:yyyy-MM-dd HH:mm} UTC. " +
                 "Run 'codex login' to refresh your session.");
 
-        // If we have an id_token, exchange it for an API key
-        if (!string.IsNullOrWhiteSpace(creds.IdToken))
+        // If we have an id_token (flat or nested), exchange it for an API key
+        var idToken = creds.EffectiveIdToken;
+        if (!string.IsNullOrWhiteSpace(idToken))
         {
-            var apiKey = await ExchangeForApiKeyAsync(creds.IdToken!, ct)
+            var apiKey = await ExchangeForApiKeyAsync(idToken!, ct)
                 .ConfigureAwait(false);
             if (!string.IsNullOrWhiteSpace(apiKey))
             {
@@ -186,11 +194,12 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
             }
         }
 
-        // Fall back to access token directly
-        if (!string.IsNullOrWhiteSpace(creds.AccessToken))
+        // Fall back to access token directly (flat or nested)
+        var accessToken = creds.EffectiveAccessToken;
+        if (!string.IsNullOrWhiteSpace(accessToken))
         {
             _logger.LogInformation("Using Codex access token directly");
-            return creds.AccessToken!;
+            return accessToken!;
         }
 
         throw new CodexSessionException(
