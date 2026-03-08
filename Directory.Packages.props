@@ -1,16 +1,13 @@
 <Project>
-
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
-
   <!-- ─── Build infrastructure (applied via Directory.Build.props) ─── -->
   <ItemGroup>
     <PackageVersion Include="Meziantou.Analyzer" Version="2.0.302" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.9.50" />
   </ItemGroup>
-
   <!-- ─── Core library ─── -->
   <ItemGroup>
     <PackageVersion Include="JD.SemanticKernel.Connectors.Abstractions" Version="0.1.14" />
@@ -20,16 +17,14 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.3" />
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.3" />
-    <PackageVersion Include="Microsoft.SemanticKernel" Version="1.72.0" />
-    <PackageVersion Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.72.0" />
+    <PackageVersion Include="Microsoft.SemanticKernel" Version="1.73.0" />
+    <PackageVersion Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.73.0" />
     <PackageVersion Include="System.Text.Json" Version="10.0.3" />
   </ItemGroup>
-
   <!-- ─── Samples ─── -->
   <ItemGroup>
     <PackageVersion Include="System.CommandLine" Version="2.0.3" />
   </ItemGroup>
-
   <!-- ─── Testing ─── -->
   <ItemGroup>
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
@@ -39,5 +34,4 @@
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
-
 </Project>
