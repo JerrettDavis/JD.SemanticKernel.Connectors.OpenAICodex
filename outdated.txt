@@ -1,0 +1,82 @@
+Discovering projects...
+Analyzing project(s)...
+Analyzing dependencies...
+» JD.SemanticKernel.Connectors.OpenAICodex
+  [net10.0]
+  Microsoft.Extensions.Configuration.Abstractions        10.0.3 -> 10.0.5
+  Microsoft.Extensions.DependencyInjection.Abstractions  10.0.3 -> 10.0.5
+  Microsoft.Extensions.Http                              10.0.3 -> 10.0.5
+  Microsoft.Extensions.Logging.Abstractions              10.0.3 -> 10.0.5
+  Microsoft.Extensions.Options                           10.0.3 -> 10.0.5
+  Microsoft.Extensions.Options.ConfigurationExtensions   10.0.3 -> 10.0.5
+  [net8.0]
+  Microsoft.Extensions.Configuration.Abstractions        10.0.3 -> 10.0.5
+  Microsoft.Extensions.DependencyInjection.Abstractions  10.0.3 -> 10.0.5
+  Microsoft.Extensions.Http                              10.0.3 -> 10.0.5
+  Microsoft.Extensions.Logging.Abstractions              10.0.3 -> 10.0.5
+  Microsoft.Extensions.Options                           10.0.3 -> 10.0.5
+  Microsoft.Extensions.Options.ConfigurationExtensions   10.0.3 -> 10.0.5
+  [.NETStandard,Version=v2.0]
+  Microsoft.Extensions.Configuration.Abstractions        10.0.3 -> 10.0.5
+  Microsoft.Extensions.DependencyInjection.Abstractions  10.0.3 -> 10.0.5
+  Microsoft.Extensions.Http                              10.0.3 -> 10.0.5
+  Microsoft.Extensions.Logging.Abstractions              10.0.3 -> 10.0.5
+  Microsoft.Extensions.Options                           10.0.3 -> 10.0.5
+  Microsoft.Extensions.Options.ConfigurationExtensions   10.0.3 -> 10.0.5
+  System.Text.Json                                       10.0.3 -> 10.0.5
+
+» JD.SemanticKernel.Connectors.OpenAICodex.Tests
+  [net10.0]
+  Microsoft.Extensions.Configuration  10.0.3 -> 10.0.5
+  Microsoft.Extensions.Logging        10.0.3 -> 10.0.5
+  [net8.0]
+  Microsoft.Extensions.Configuration  10.0.3 -> 10.0.5
+  Microsoft.Extensions.Logging        10.0.3 -> 10.0.5
+
+Version color legend:
+<red>   : Major version update or pre-release version. Possible breaking changes.
+<yellow>: Minor version update. Backwards-compatible features added.
+<green> : Patch version update. Backwards-compatible bug fixes.
+
+Upgrading package Microsoft.Extensions.Configuration.Abstractions...
+Project JD.SemanticKernel.Connectors.OpenAICodex [net10.0] upgraded successfully
+Project JD.SemanticKernel.Connectors.OpenAICodex [net8.0] upgraded successfully
+Project JD.SemanticKernel.Connectors.OpenAICodex [.NETStandard,Version=v2.0] upgraded successfully
+
+Upgrading package Microsoft.Extensions.DependencyInjection.Abstractions...
+Project JD.SemanticKernel.Connectors.OpenAICodex [net10.0] upgraded successfully
+Project JD.SemanticKernel.Connectors.OpenAICodex [net8.0] upgraded successfully
+Project JD.SemanticKernel.Connectors.OpenAICodex [.NETStandard,Version=v2.0] upgraded successfully
+
+Upgrading package Microsoft.Extensions.Http...
+Project JD.SemanticKernel.Connectors.OpenAICodex [net10.0] upgraded successfully
+Project JD.SemanticKernel.Connectors.OpenAICodex [net8.0] upgraded successfully
+Project JD.SemanticKernel.Connectors.OpenAICodex [.NETStandard,Version=v2.0] upgraded successfully
+
+Upgrading package Microsoft.Extensions.Logging.Abstractions...
+Project JD.SemanticKernel.Connectors.OpenAICodex [net10.0] upgraded successfully
+Project JD.SemanticKernel.Connectors.OpenAICodex [net8.0] upgraded successfully
+Project JD.SemanticKernel.Connectors.OpenAICodex [.NETStandard,Version=v2.0] upgraded successfully
+
+Upgrading package Microsoft.Extensions.Options...
+Project JD.SemanticKernel.Connectors.OpenAICodex [net10.0] upgraded successfully
+Project JD.SemanticKernel.Connectors.OpenAICodex [net8.0] upgraded successfully
+Project JD.SemanticKernel.Connectors.OpenAICodex [.NETStandard,Version=v2.0] upgraded successfully
+
+Upgrading package Microsoft.Extensions.Options.ConfigurationExtensions...
+Project JD.SemanticKernel.Connectors.OpenAICodex [net10.0] upgraded successfully
+Project JD.SemanticKernel.Connectors.OpenAICodex [net8.0] upgraded successfully
+Project JD.SemanticKernel.Connectors.OpenAICodex [.NETStandard,Version=v2.0] upgraded successfully
+
+Upgrading package System.Text.Json...
+Project JD.SemanticKernel.Connectors.OpenAICodex [.NETStandard,Version=v2.0] upgraded successfully
+
+Upgrading package Microsoft.Extensions.Configuration...
+Project JD.SemanticKernel.Connectors.OpenAICodex.Tests [net10.0] upgraded successfully
+Project JD.SemanticKernel.Connectors.OpenAICodex.Tests [net8.0] upgraded successfully
+
+Upgrading package Microsoft.Extensions.Logging...
+Project JD.SemanticKernel.Connectors.OpenAICodex.Tests [net10.0] upgraded successfully
+Project JD.SemanticKernel.Connectors.OpenAICodex.Tests [net8.0] upgraded successfully
+
+Elapsed: 00:00:57.3037857
