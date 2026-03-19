@@ -377,6 +377,53 @@ public class CodexSessionProviderTests
     }
 
     [Fact]
+    public async Task GetApiKey_MissingAuthMode_WithJwtAndApiKeys_PrefersManagedToken()
+    {
+        var tmpDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tmpDir);
+        var credPath = Path.Combine(tmpDir, "auth.json");
+
+        await s_envGate.WaitAsync();
+        try
+        {
+            var prevOpenAi = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+            var prevCodex = Environment.GetEnvironmentVariable("CODEX_TOKEN");
+            try
+            {
+                Environment.SetEnvironmentVariable("OPENAI_API_KEY", "sk-stale-env-key");
+                Environment.SetEnvironmentVariable("CODEX_TOKEN", null);
+
+                var json = """
+                    {
+                        "OPENAI_API_KEY": "sk-stale-file-key",
+                        "tokens": {
+                            "id_token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIn0.signature"
+                        }
+                    }
+                    """;
+                await File.WriteAllTextAsync(credPath, json);
+
+                using var provider = SessionProviderFactory.Create(o => o.CredentialsPath = credPath);
+                provider.TokenExchanger = (_, token, _) =>
+                    Task.FromResult<string?>($"api-key-from-{token}");
+
+                var key = await provider.GetApiKeyAsync();
+                Assert.Equal("api-key-from-eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIn0.signature", key);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("OPENAI_API_KEY", prevOpenAi);
+                Environment.SetEnvironmentVariable("CODEX_TOKEN", prevCodex);
+                Directory.Delete(tmpDir, true);
+            }
+        }
+        finally
+        {
+            s_envGate.Release();
+        }
+    }
+
+    [Fact]
     public void ComputeCodexKeyringAccountKey_IsDeterministic()
     {
         var a = CodexSessionProvider.ComputeCodexKeyringAccountKey(@"/home/alice/.codex");
@@ -492,6 +539,43 @@ public class CodexSessionProviderTests
 
             var key = await provider.GetApiKeyAsync();
             Assert.Equal("sk-file-key-123", key);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("OPENAI_API_KEY", null);
+            Environment.SetEnvironmentVariable("CODEX_TOKEN", null);
+            Directory.Delete(tmpDir, true);
+        }
+    }
+
+    [Fact]
+    public async Task GetApiKey_MissingAuthMode_WithJwtAndFileApiKey_NoEnv_PrefersManagedToken()
+    {
+        var tmpDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tmpDir);
+        var credPath = Path.Combine(tmpDir, "auth.json");
+
+        try
+        {
+            Environment.SetEnvironmentVariable("OPENAI_API_KEY", null);
+            Environment.SetEnvironmentVariable("CODEX_TOKEN", null);
+
+            var json = """
+                {
+                    "OPENAI_API_KEY": "sk-stale-file-key",
+                    "tokens": {
+                        "id_token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIn0.signature"
+                    }
+                }
+                """;
+            await File.WriteAllTextAsync(credPath, json);
+
+            using var provider = SessionProviderFactory.Create(o => o.CredentialsPath = credPath);
+            provider.TokenExchanger = (_, token, _) =>
+                Task.FromResult<string?>($"api-key-from-{token}");
+
+            var key = await provider.GetApiKeyAsync();
+            Assert.Equal("api-key-from-eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIn0.signature", key);
         }
         finally
         {

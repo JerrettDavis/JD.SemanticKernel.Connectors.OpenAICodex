@@ -85,14 +85,15 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
         // precedence over environment API keys to avoid stale/billing-limited key
         // shadowing valid OAuth subscription auth.
         var managedCreds = await GetCredentialsAsync(ct).ConfigureAwait(false);
-        if (ShouldPreferManagedCredentials(managedCreds))
+        var envApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+        if (ShouldPreferManagedCredentials(managedCreds, envApiKey))
         {
             _logger.LogDebug("Using managed ChatGPT credentials from Codex auth storage");
-            return await ExtractFromCredentialsAsync(managedCreds!, ct).ConfigureAwait(false);
+            return await ExtractFromCredentialsAsync(managedCreds!, ct, preferTokens: true)
+                .ConfigureAwait(false);
         }
 
         // 4. OPENAI_API_KEY env var
-        var envApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
         if (!string.IsNullOrWhiteSpace(envApiKey))
         {
             _logger.LogDebug("Using OPENAI_API_KEY environment variable");
@@ -110,7 +111,11 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
 
         // 6. Credentials storage fallback
         if (managedCreds is not null)
-            return await ExtractFromCredentialsAsync(managedCreds, ct).ConfigureAwait(false);
+        {
+            var preferTokens = ShouldPreferManagedCredentials(managedCreds, envApiKey: null);
+            return await ExtractFromCredentialsAsync(managedCreds, ct, preferTokens)
+                .ConfigureAwait(false);
+        }
 
         throw new CodexSessionException(
             "No Codex credentials found. " +
@@ -183,21 +188,54 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
         }
     }
 
-    private static bool ShouldPreferManagedCredentials(CodexCredentialsFile? creds)
+    private static bool ShouldPreferManagedCredentials(
+        CodexCredentialsFile? creds,
+        string? envApiKey)
     {
         if (creds is null)
             return false;
 
-        return !string.IsNullOrWhiteSpace(creds.AuthMode) &&
-               creds.AuthMode!.Contains("chatgpt", StringComparison.OrdinalIgnoreCase) &&
-               (!string.IsNullOrWhiteSpace(creds.EffectiveIdToken) ||
-                !string.IsNullOrWhiteSpace(creds.EffectiveAccessToken));
+        var token = !string.IsNullOrWhiteSpace(creds.EffectiveIdToken)
+            ? creds.EffectiveIdToken
+            : creds.EffectiveAccessToken;
+        if (string.IsNullOrWhiteSpace(token))
+            return false;
+
+        var apiKeyWouldShadow = !string.IsNullOrWhiteSpace(creds.OpenAIApiKey) ||
+                                !string.IsNullOrWhiteSpace(envApiKey);
+        if (!apiKeyWouldShadow)
+            return false;
+
+        return IsChatGptAuthMode(creds.AuthMode) || LooksLikeOAuthJwt(token);
     }
 
     private async Task<string> ExtractFromCredentialsAsync(
         CodexCredentialsFile creds,
-        CancellationToken ct)
+        CancellationToken ct,
+        bool preferTokens = false)
     {
+        if (preferTokens && !creds.IsExpired)
+        {
+            var idTokenPreferred = creds.EffectiveIdToken;
+            if (!string.IsNullOrWhiteSpace(idTokenPreferred))
+            {
+                var apiKeyPreferred = await ExchangeForApiKeyAsync(idTokenPreferred!, ct)
+                    .ConfigureAwait(false);
+                if (!string.IsNullOrWhiteSpace(apiKeyPreferred))
+                {
+                    _logger.LogInformation("Exchanged preferred Codex id_token for API key");
+                    return apiKeyPreferred!;
+                }
+            }
+
+            var accessTokenPreferred = creds.EffectiveAccessToken;
+            if (!string.IsNullOrWhiteSpace(accessTokenPreferred))
+            {
+                _logger.LogInformation("Using preferred Codex access token directly");
+                return accessTokenPreferred!;
+            }
+        }
+
         // If the file has an explicit API key at root level, use it
         if (!string.IsNullOrWhiteSpace(creds.OpenAIApiKey))
         {
@@ -234,6 +272,23 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
         throw new CodexSessionException(
             "Codex credentials file is present but contains no usable token. " +
             "Run 'codex login' to obtain a new token.");
+    }
+
+    private static bool IsChatGptAuthMode(string? authMode) =>
+        !string.IsNullOrWhiteSpace(authMode) &&
+        authMode.Contains("chatgpt", StringComparison.OrdinalIgnoreCase);
+
+    private static bool LooksLikeOAuthJwt(string token)
+    {
+        if (string.IsNullOrWhiteSpace(token) || !token.StartsWith("eyJ", StringComparison.Ordinal))
+            return false;
+
+        var firstDot = token.IndexOf('.');
+        if (firstDot <= 0)
+            return false;
+
+        var secondDot = token.IndexOf('.', firstDot + 1);
+        return secondDot > firstDot + 1 && secondDot < token.Length - 1;
     }
 
     private async Task<string> ExchangeForApiKeyOrReturnAsync(string token, CancellationToken ct)
