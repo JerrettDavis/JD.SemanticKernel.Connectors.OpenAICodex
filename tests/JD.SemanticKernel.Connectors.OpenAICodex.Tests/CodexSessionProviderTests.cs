@@ -4,6 +4,9 @@ namespace JD.SemanticKernel.Connectors.OpenAICodex.Tests;
 
 public class CodexSessionProviderTests
 {
+    private static readonly object s_envLock = new();
+    private static readonly SemaphoreSlim s_envGate = new(1, 1);
+
     [Fact]
     public async Task GetApiKey_ExplicitApiKey_ReturnsIt()
     {
@@ -39,10 +42,11 @@ public class CodexSessionProviderTests
     [Fact]
     public async Task GetApiKey_EnvVarOpenAiApiKey_ReturnsIt()
     {
+        var nonexistentCreds = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"), "auth.json");
         try
         {
             Environment.SetEnvironmentVariable("OPENAI_API_KEY", "sk-from-env");
-            using var provider = SessionProviderFactory.Create();
+            using var provider = SessionProviderFactory.Create(o => o.CredentialsPath = nonexistentCreds);
 
             var key = await provider.GetApiKeyAsync();
             Assert.Equal("sk-from-env", key);
@@ -56,12 +60,13 @@ public class CodexSessionProviderTests
     [Fact]
     public async Task GetApiKey_EnvVarCodexToken_ExchangesForApiKey()
     {
+        var nonexistentCreds = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"), "auth.json");
         try
         {
             Environment.SetEnvironmentVariable("OPENAI_API_KEY", null);
             Environment.SetEnvironmentVariable("CODEX_TOKEN", "oauth-env-token");
 
-            using var provider = SessionProviderFactory.Create();
+            using var provider = SessionProviderFactory.Create(o => o.CredentialsPath = nonexistentCreds);
             provider.TokenExchanger = (_, token, _) =>
                 Task.FromResult<string?>($"exchanged-{token}");
 
@@ -294,6 +299,90 @@ public class CodexSessionProviderTests
         var path = provider.ResolveCredentialsPath();
 
         Assert.Equal("/custom/path/auth.json", path);
+    }
+
+    [Fact]
+    public void ResolveCredentialsPath_UsesCodexHomeEnvVar()
+    {
+        var tempCodexHome = Path.Combine(Path.GetTempPath(), $"codex-home-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempCodexHome);
+        lock (s_envLock)
+        {
+            var previous = Environment.GetEnvironmentVariable("CODEX_HOME");
+            try
+            {
+                Environment.SetEnvironmentVariable("CODEX_HOME", tempCodexHome);
+                using var provider = SessionProviderFactory.Create();
+
+                var path = provider.ResolveCredentialsPath();
+                Assert.Equal(Path.Combine(tempCodexHome, "auth.json"), path);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("CODEX_HOME", previous);
+                Directory.Delete(tempCodexHome, true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task GetApiKey_ChatGptModeInAuthStorage_PrefersManagedTokensOverEnvApiKey()
+    {
+        var tmpDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tmpDir);
+        var credPath = Path.Combine(tmpDir, "auth.json");
+
+        await s_envGate.WaitAsync();
+        try
+        {
+            var prevOpenAi = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+            var prevCodex = Environment.GetEnvironmentVariable("CODEX_TOKEN");
+            try
+            {
+                Environment.SetEnvironmentVariable("OPENAI_API_KEY", "sk-stale-env-key");
+                Environment.SetEnvironmentVariable("CODEX_TOKEN", null);
+
+                var json = """
+                    {
+                        "auth_mode": "chatgpt",
+                        "tokens": {
+                            "id_token": "id-token-from-chatgpt-auth-mode"
+                        }
+                    }
+                    """;
+                await File.WriteAllTextAsync(credPath, json);
+
+                using var provider = SessionProviderFactory.Create(o => o.CredentialsPath = credPath);
+                provider.TokenExchanger = (_, token, _) =>
+                    Task.FromResult<string?>($"api-key-from-{token}");
+
+                var key = await provider.GetApiKeyAsync();
+                Assert.Equal("api-key-from-id-token-from-chatgpt-auth-mode", key);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("OPENAI_API_KEY", prevOpenAi);
+                Environment.SetEnvironmentVariable("CODEX_TOKEN", prevCodex);
+                Directory.Delete(tmpDir, true);
+            }
+        }
+        finally
+        {
+            s_envGate.Release();
+        }
+    }
+
+    [Fact]
+    public void ComputeCodexKeyringAccountKey_IsDeterministic()
+    {
+        var a = CodexSessionProvider.ComputeCodexKeyringAccountKey(@"/home/alice/.codex");
+        var b = CodexSessionProvider.ComputeCodexKeyringAccountKey(@"/home/alice/.codex");
+        var c = CodexSessionProvider.ComputeCodexKeyringAccountKey(@"/home/bob/.codex");
+
+        Assert.Equal(a, b);
+        Assert.NotEqual(a, c);
+        Assert.StartsWith("cli|", a, StringComparison.Ordinal);
+        Assert.Equal(20, a.Length);
     }
 
     [Fact]

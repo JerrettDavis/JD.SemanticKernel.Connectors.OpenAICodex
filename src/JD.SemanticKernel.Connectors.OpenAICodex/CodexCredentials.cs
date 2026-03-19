@@ -13,6 +13,12 @@ namespace JD.SemanticKernel.Connectors.OpenAICodex;
 /// </remarks>
 public sealed record CodexCredentialsFile
 {
+    /// <summary>
+    /// Authentication mode persisted by Codex CLI (e.g. <c>"chatgpt"</c>, <c>"api_key"</c>).
+    /// </summary>
+    [JsonPropertyName("auth_mode")]
+    public string? AuthMode { get; init; }
+
     /// <summary>The OAuth access token (flat layout).</summary>
     [JsonPropertyName("access_token")]
     public string? AccessToken { get; init; }
