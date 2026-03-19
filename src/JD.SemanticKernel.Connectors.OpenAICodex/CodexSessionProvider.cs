@@ -442,12 +442,8 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
             // Keep original path if normalization fails.
         }
 
-        byte[] bytes;
-        using (var sha = SHA256.Create())
-        {
-            bytes = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(normalized));
-        }
-        var hex = BitConverter.ToString(bytes).Replace("-", string.Empty).ToLowerInvariant();
+        var bytes = HashSha256(System.Text.Encoding.UTF8.GetBytes(normalized));
+        var hex = ToLowerHex(bytes);
         var shortHex = hex.Length >= 16 ? hex.Substring(0, 16) : hex;
         return $"cli|{shortHex}";
     }
@@ -487,7 +483,7 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
                 credential.CredentialBlob,
                 credential.CredentialBlobSize);
             if (!string.IsNullOrWhiteSpace(payload) &&
-                payload.TrimStart().StartsWith("{", StringComparison.Ordinal))
+                StartsWithOpenBrace(payload.TrimStart()))
             {
                 json = payload;
                 return true;
@@ -533,7 +529,7 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
                     continue;
 
                 var trimmed = payload.TrimStart();
-                if (!trimmed.StartsWith("{", StringComparison.Ordinal))
+                if (!StartsWithOpenBrace(trimmed))
                     continue;
 
                 json = payload;
@@ -557,17 +553,53 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
         Marshal.Copy(blobPtr, bytes, 0, (int)blobSize);
 
         var utf8 = System.Text.Encoding.UTF8.GetString(bytes).TrimEnd('\0');
-        if (utf8.StartsWith("{", StringComparison.Ordinal))
+        if (StartsWithOpenBrace(utf8))
             return utf8;
 
         if (bytes.Length % 2 == 0)
         {
             var utf16 = System.Text.Encoding.Unicode.GetString(bytes).TrimEnd('\0');
-            if (utf16.StartsWith("{", StringComparison.Ordinal))
+            if (StartsWithOpenBrace(utf16))
                 return utf16;
         }
 
         return utf8;
+    }
+
+    private static byte[] HashSha256(byte[] data)
+    {
+#if NET5_0_OR_GREATER
+        return SHA256.HashData(data);
+#else
+        using var sha = SHA256.Create();
+        return sha.ComputeHash(data);
+#endif
+    }
+
+    private static string ToLowerHex(byte[] bytes)
+    {
+        var chars = new char[bytes.Length * 2];
+        var i = 0;
+
+        foreach (var b in bytes)
+        {
+            chars[i++] = ToHexNibble(b >> 4);
+            chars[i++] = ToHexNibble(b & 0xF);
+        }
+
+        return new string(chars);
+    }
+
+    private static char ToHexNibble(int value) =>
+        (char)(value < 10 ? '0' + value : 'a' + (value - 10));
+
+    private static bool StartsWithOpenBrace(string value)
+    {
+#if NETSTANDARD2_0
+        return value.StartsWith("{", StringComparison.Ordinal);
+#else
+        return value.StartsWith('{');
+#endif
     }
 
     private async Task PersistCredentialsAsync(CodexCredentialsFile creds, CancellationToken ct)
@@ -611,6 +643,7 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
 
     private const uint CRED_TYPE_GENERIC = 1;
 
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern bool CredRead(
         string target,
@@ -618,6 +651,7 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
         uint flags,
         out IntPtr credentialPtr);
 
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern bool CredEnumerate(
         string? filter,
@@ -625,6 +659,7 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
         out uint count,
         out IntPtr credentialsPtr);
 
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("advapi32.dll", SetLastError = true)]
     private static extern void CredFree(IntPtr buffer);
 
