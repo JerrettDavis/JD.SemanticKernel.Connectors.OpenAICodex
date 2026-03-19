@@ -4,7 +4,6 @@ namespace JD.SemanticKernel.Connectors.OpenAICodex.Tests;
 
 public class CodexSessionProviderTests
 {
-    private static readonly object s_envLock = new();
     private static readonly SemaphoreSlim s_envGate = new(1, 1);
 
     [Fact]
@@ -306,7 +305,8 @@ public class CodexSessionProviderTests
     {
         var tempCodexHome = Path.Combine(Path.GetTempPath(), $"codex-home-{Guid.NewGuid():N}");
         Directory.CreateDirectory(tempCodexHome);
-        lock (s_envLock)
+        s_envGate.Wait();
+        try
         {
             var previous = Environment.GetEnvironmentVariable("CODEX_HOME");
             try
@@ -322,6 +322,10 @@ public class CodexSessionProviderTests
                 Environment.SetEnvironmentVariable("CODEX_HOME", previous);
                 Directory.Delete(tempCodexHome, true);
             }
+        }
+        finally
+        {
+            s_envGate.Release();
         }
     }
 
