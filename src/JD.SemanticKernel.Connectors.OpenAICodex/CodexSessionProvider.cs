@@ -195,9 +195,9 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
         if (creds is null)
             return false;
 
-        var token = !string.IsNullOrWhiteSpace(creds.EffectiveIdToken)
-            ? creds.EffectiveIdToken
-            : creds.EffectiveAccessToken;
+        var token = !string.IsNullOrWhiteSpace(creds.EffectiveAccessToken)
+            ? creds.EffectiveAccessToken
+            : creds.EffectiveIdToken;
         if (string.IsNullOrWhiteSpace(token))
             return false;
 
@@ -206,7 +206,7 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
         if (!apiKeyWouldShadow)
             return false;
 
-        return IsChatGptAuthMode(creds.AuthMode) || LooksLikeOAuthJwt(token);
+        return IsChatGptAuthMode(creds.AuthMode) || LooksLikeOAuthJwt(token!);
     }
 
     private async Task<string> ExtractFromCredentialsAsync(
@@ -216,6 +216,13 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
     {
         if (preferTokens && !creds.IsExpired)
         {
+            var accessTokenPreferred = creds.EffectiveAccessToken;
+            if (!string.IsNullOrWhiteSpace(accessTokenPreferred))
+            {
+                _logger.LogInformation("Using preferred Codex access token directly");
+                return accessTokenPreferred!;
+            }
+
             var idTokenPreferred = creds.EffectiveIdToken;
             if (!string.IsNullOrWhiteSpace(idTokenPreferred))
             {
@@ -226,13 +233,6 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
                     _logger.LogInformation("Exchanged preferred Codex id_token for API key");
                     return apiKeyPreferred!;
                 }
-            }
-
-            var accessTokenPreferred = creds.EffectiveAccessToken;
-            if (!string.IsNullOrWhiteSpace(accessTokenPreferred))
-            {
-                _logger.LogInformation("Using preferred Codex access token directly");
-                return accessTokenPreferred!;
             }
         }
 
@@ -248,7 +248,15 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
                 $"Codex session expired at {creds.ExpiresAtUtc:yyyy-MM-dd HH:mm} UTC. " +
                 "Run 'codex login' to refresh your session.");
 
-        // If we have an id_token (flat or nested), exchange it for an API key
+        // Prefer direct OAuth access tokens over token exchange where possible.
+        var accessToken = creds.EffectiveAccessToken;
+        if (!string.IsNullOrWhiteSpace(accessToken))
+        {
+            _logger.LogInformation("Using Codex access token directly");
+            return accessToken!;
+        }
+
+        // If we have an id_token (flat or nested), exchange it for an API key.
         var idToken = creds.EffectiveIdToken;
         if (!string.IsNullOrWhiteSpace(idToken))
         {
@@ -259,14 +267,6 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
                 _logger.LogInformation("Exchanged Codex id_token for API key");
                 return apiKey!;
             }
-        }
-
-        // Fall back to access token directly (flat or nested)
-        var accessToken = creds.EffectiveAccessToken;
-        if (!string.IsNullOrWhiteSpace(accessToken))
-        {
-            _logger.LogInformation("Using Codex access token directly");
-            return accessToken!;
         }
 
         throw new CodexSessionException(
@@ -295,6 +295,11 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
     {
         // If it looks like an API key already (sk-...), use it directly
         if (token.StartsWith("sk-", StringComparison.Ordinal))
+            return token;
+        // ChatGPT OAuth access tokens are valid bearer tokens for API calls.
+        // Prefer direct usage to avoid minting account-scoped API keys that can
+        // trigger false insufficient_quota paths.
+        if (LooksLikeOAuthJwt(token))
             return token;
 
         var apiKey = await ExchangeForApiKeyAsync(token, ct).ConfigureAwait(false);

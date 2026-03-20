@@ -101,7 +101,7 @@ public class CodexSessionProviderTests
                 Task.FromResult<string?>($"api-key-from-{token}");
 
             var key = await provider.GetApiKeyAsync();
-            Assert.Equal("api-key-from-id-token-from-file", key);
+            Assert.Equal("at-from-file", key);
         }
         finally
         {
@@ -437,7 +437,7 @@ public class CodexSessionProviderTests
     }
 
     [Fact]
-    public async Task GetApiKey_NestedTokens_ExchangesIdToken()
+    public async Task GetApiKey_NestedTokens_PrefersAccessTokenDirectly()
     {
         var tmpDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tmpDir);
@@ -468,7 +468,7 @@ public class CodexSessionProviderTests
                 Task.FromResult<string?>($"api-key-from-{token}");
 
             var key = await provider.GetApiKeyAsync();
-            Assert.Equal("api-key-from-eyJ.nested-id-token", key);
+            Assert.Equal("eyJ.nested-access-token", key);
         }
         finally
         {
@@ -476,6 +476,18 @@ public class CodexSessionProviderTests
             Environment.SetEnvironmentVariable("CODEX_TOKEN", null);
             Directory.Delete(tmpDir, true);
         }
+    }
+
+    [Fact]
+    public async Task GetApiKey_ExplicitAccessToken_Jwt_UsesDirectBearerToken()
+    {
+        using var provider = SessionProviderFactory.Create(
+            o => o.AccessToken = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIn0.signature");
+        provider.TokenExchanger = (_, token, _) =>
+            Task.FromResult<string?>($"exchanged-{token}");
+
+        var key = await provider.GetApiKeyAsync();
+        Assert.Equal("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIn0.signature", key);
     }
 
     [Fact]
