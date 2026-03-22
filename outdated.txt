@@ -1,0 +1,39 @@
+Discovering projects...
+Analyzing project(s)...
+Analyzing dependencies...
+» BasicUsage
+  [net10.0]
+  Microsoft.SemanticKernel  1.73.0 -> 1.74.0
+
+» JD.SemanticKernel.Connectors.OpenAICodex
+  [net10.0]
+  JD.SemanticKernel.Connectors.Abstractions   0.1.14 -> 0.1.18
+  Microsoft.SemanticKernel                    1.73.0 -> 1.74.0
+  Microsoft.SemanticKernel.Connectors.OpenAI  1.73.0 -> 1.74.0
+  [net8.0]
+  JD.SemanticKernel.Connectors.Abstractions   0.1.14 -> 0.1.18
+  Microsoft.SemanticKernel                    1.73.0 -> 1.74.0
+  Microsoft.SemanticKernel.Connectors.OpenAI  1.73.0 -> 1.74.0
+  [.NETStandard,Version=v2.0]
+  JD.SemanticKernel.Connectors.Abstractions  0.1.14 -> 0.1.18
+
+Version color legend:
+<red>   : Major version update or pre-release version. Possible breaking changes.
+<yellow>: Minor version update. Backwards-compatible features added.
+<green> : Patch version update. Backwards-compatible bug fixes.
+
+Upgrading package Microsoft.SemanticKernel...
+Project BasicUsage [net10.0] upgraded successfully
+Project JD.SemanticKernel.Connectors.OpenAICodex [net10.0] upgraded successfully
+Project JD.SemanticKernel.Connectors.OpenAICodex [net8.0] upgraded successfully
+
+Upgrading package JD.SemanticKernel.Connectors.Abstractions...
+Project JD.SemanticKernel.Connectors.OpenAICodex [net10.0] upgraded successfully
+Project JD.SemanticKernel.Connectors.OpenAICodex [net8.0] upgraded successfully
+Project JD.SemanticKernel.Connectors.OpenAICodex [.NETStandard,Version=v2.0] upgraded successfully
+
+Upgrading package Microsoft.SemanticKernel.Connectors.OpenAI...
+Project JD.SemanticKernel.Connectors.OpenAICodex [net10.0] upgraded successfully
+Project JD.SemanticKernel.Connectors.OpenAICodex [net8.0] upgraded successfully
+
+Elapsed: 00:00:24.2567715
