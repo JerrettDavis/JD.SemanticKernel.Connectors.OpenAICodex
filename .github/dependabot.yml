@@ -17,33 +17,9 @@ updates:
       prefix: deps
       include: scope
     groups:
-      microsoft:
+      all-nuget:
         patterns:
-          - "Microsoft.*"
-        update-types:
-          - minor
-          - patch
-      semantic-kernel:
-        patterns:
-          - "Microsoft.SemanticKernel*"
-        update-types:
-          - minor
-          - patch
-      testing:
-        patterns:
-          - "xunit*"
-          - "Xunit.*"
-          - "coverlet.*"
-        update-types:
-          - minor
-          - patch
-      analyzers:
-        patterns:
-          - "Meziantou.Analyzer"
-          - "Microsoft.CodeAnalysis.*"
-        update-types:
-          - minor
-          - patch
+          - "*"
 
   - package-ecosystem: github-actions
     directory: /
@@ -60,3 +36,7 @@ updates:
     commit-message:
       prefix: ci
       include: scope
+    groups:
+      all-actions:
+        patterns:
+          - "*"
