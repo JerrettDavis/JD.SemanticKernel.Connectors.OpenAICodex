@@ -1,7 +1,7 @@
-using System.Text.Json;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Security.Cryptography;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using JD.SemanticKernel.Connectors.Abstractions;
 using Microsoft.Extensions.Logging;
@@ -511,14 +511,14 @@ public sealed class CodexSessionProvider : ISessionProvider, IDisposable
     private static bool TryReadWindowsCodexKeyringJson(string account, out string json)
     {
         json = string.Empty;
-        const string service = "Codex Auth";
+        const string Service = "Codex Auth";
 
         var targets = new[]
         {
-            $"{service}:{account}",
-            $"{service}/{account}",
+            $"{Service}:{account}",
+            $"{Service}/{account}",
             account,
-            service
+            Service
         };
 
         foreach (var target in targets)
