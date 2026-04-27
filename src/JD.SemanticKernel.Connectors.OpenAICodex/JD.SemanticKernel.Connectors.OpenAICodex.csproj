@@ -50,7 +50,7 @@
 
   <!-- net8.0+: SK + OpenAI connector -->
   <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
-    <PackageReference Include="Microsoft.Extensions.Configuration" VersionOverride="10.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.SemanticKernel" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" />
   </ItemGroup>
