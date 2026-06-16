@@ -1,42 +1,41 @@
+# Keep dependency PRs grouped and delayed for at least 48 hours so newly published packages age before adoption.
 version: 2
-
 updates:
-  - package-ecosystem: nuget
-    directory: /
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
-      interval: weekly
-      day: monday
-      time: "09:00"
-    open-pull-requests-limit: 10
-    reviewers:
-      - jerrettdavis
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Chicago"
+    open-pull-requests-limit: 5
     labels:
-      - dependencies
-      - nuget
+      - "dependencies"
+      - "ci"
     commit-message:
-      prefix: deps
-      include: scope
+      prefix: "chore(deps)"
+    cooldown:
+      default-days: 2
     groups:
-      all-nuget:
+      github-actions-dependencies:
         patterns:
           - "*"
 
-  - package-ecosystem: github-actions
-    directory: /
+  - package-ecosystem: "nuget"
+    directory: "/"
     schedule:
-      interval: weekly
-      day: monday
-      time: "09:00"
-    open-pull-requests-limit: 5
-    reviewers:
-      - jerrettdavis
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Chicago"
+    open-pull-requests-limit: 10
     labels:
-      - dependencies
-      - github-actions
+      - "dependencies"
     commit-message:
-      prefix: ci
-      include: scope
+      prefix: "chore(deps)"
+    cooldown:
+      default-days: 2
     groups:
-      all-actions:
+      nuget-dependencies:
         patterns:
           - "*"
