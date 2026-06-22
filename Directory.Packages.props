@@ -6,14 +6,14 @@
 
   <!-- ─── Build infrastructure (applied via Directory.Build.props) ─── -->
   <ItemGroup>
-    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.104" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.105" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.300" />
-    <PackageVersion Include="Nerdbank.GitVersioning" Version="3.9.50" />
+    <PackageVersion Include="Nerdbank.GitVersioning" Version="3.10.85" />
   </ItemGroup>
 
   <!-- ─── Core library ─── -->
   <ItemGroup>
-    <PackageVersion Include="JD.SemanticKernel.Connectors.Abstractions" Version="0.1.61" />
+    <PackageVersion Include="JD.SemanticKernel.Connectors.Abstractions" Version="0.1.67" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.9" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.9" />
