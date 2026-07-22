@@ -188,10 +188,22 @@ jobs:
           if git rev-parse "$TAG" >/dev/null 2>&1; then
             echo "Tag $TAG already exists — skipping."
           else
-            gh api "repos/${{ github.repository }}/git/refs" \
+            # Retry to tolerate transient "403 Resource not accessible by
+            # integration" errors caused by GitHub App token propagation lag.
+            attempt=1
+            max_attempts=3
+            until gh api "repos/${{ github.repository }}/git/refs" \
               -X POST \
               -f "ref=refs/tags/$TAG" \
-              -f "sha=${{ github.sha }}"
+              -f "sha=${{ github.sha }}"; do
+              if [ "$attempt" -ge "$max_attempts" ]; then
+                echo "Failed to create tag $TAG after $max_attempts attempts." >&2
+                exit 1
+              fi
+              echo "Tag creation attempt $attempt failed; retrying in $((attempt * 5))s..." >&2
+              sleep "$((attempt * 5))"
+              attempt=$((attempt + 1))
+            done
             echo "Created tag $TAG"
           fi
 
