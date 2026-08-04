@@ -431,7 +431,7 @@ public class CodexSessionProviderTests
         var c = CodexSessionProvider.ComputeCodexKeyringAccountKey(@"/home/bob/.codex");
 
         Assert.Equal(a, b);
-        Assert.NotEqual(a, c);
+        Assert.NotEqual(a, c, StringComparer.Ordinal);
         Assert.StartsWith("cli|", a, StringComparison.Ordinal);
         Assert.Equal(20, a.Length);
     }
