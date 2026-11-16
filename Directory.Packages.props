@@ -6,23 +6,23 @@
 
   <!-- ─── Build infrastructure (applied via Directory.Build.props) ─── -->
   <ItemGroup>
-    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.321" />
-    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.403" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.340" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="11.0.100" />
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.10.94" />
   </ItemGroup>
 
   <!-- ─── Core library ─── -->
   <ItemGroup>
-    <PackageVersion Include="JD.SemanticKernel.Connectors.Abstractions" Version="0.1.98" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.14" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.14" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.14" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.14" />
-    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.14" />
-    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.14" />
+    <PackageVersion Include="JD.SemanticKernel.Connectors.Abstractions" Version="0.1.102" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="11.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="11.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="11.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="11.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="11.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="11.0.0" />
     <PackageVersion Include="Microsoft.SemanticKernel" Version="1.82.0" />
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.82.0" />
-    <PackageVersion Include="System.Text.Json" Version="10.0.14" />
+    <PackageVersion Include="System.Text.Json" Version="11.0.0" />
   </ItemGroup>
 
   <!-- ─── Samples ─── -->
@@ -33,9 +33,9 @@
   <!-- ─── Testing ─── -->
   <ItemGroup>
     <PackageVersion Include="coverlet.collector" Version="10.1.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.14" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.14" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="11.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="11.0.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.12.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.1" />
   </ItemGroup>
